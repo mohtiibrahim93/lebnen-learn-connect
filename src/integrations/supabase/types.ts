@@ -14,16 +14,242 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          id: string
+          meeting_link: string | null
+          notes: string | null
+          scheduled_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+          student_id: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          student_id: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          student_id?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      courses: {
+        Row: {
+          content_url: string | null
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_published: boolean | null
+          level: string | null
+          thumbnail_url: string | null
+          title: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          level?: string | null
+          thumbnail_url?: string | null
+          title: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          level?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tutor_applications: {
+        Row: {
+          created_at: string
+          experience_years: number
+          expertise: string
+          hourly_rate: number
+          id: string
+          motivation: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          specialties: string[]
+          status: Database["public"]["Enums"]["application_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          experience_years: number
+          expertise: string
+          hourly_rate: number
+          id?: string
+          motivation: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialties?: string[]
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          experience_years?: number
+          expertise?: string
+          hourly_rate?: number
+          id?: string
+          motivation?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialties?: string[]
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tutor_profiles: {
+        Row: {
+          created_at: string
+          experience_years: number
+          expertise: string
+          hourly_rate: number
+          id: string
+          is_verified: boolean | null
+          rating: number | null
+          specialties: string[]
+          total_students: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          experience_years?: number
+          expertise: string
+          hourly_rate: number
+          id?: string
+          is_verified?: boolean | null
+          rating?: number | null
+          specialties?: string[]
+          total_students?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          experience_years?: number
+          expertise?: string
+          hourly_rate?: number
+          id?: string
+          is_verified?: boolean | null
+          rating?: number | null
+          specialties?: string[]
+          total_students?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "tutor" | "admin"
+      application_status: "pending" | "approved" | "rejected"
+      booking_status: "pending" | "confirmed" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +376,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "tutor", "admin"],
+      application_status: ["pending", "approved", "rejected"],
+      booking_status: ["pending", "confirmed", "completed", "cancelled"],
+    },
   },
 } as const
