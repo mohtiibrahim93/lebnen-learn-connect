@@ -75,6 +75,22 @@ export default function TutorDashboard() {
     try {
       const meetingLink = `https://meet.google.com/${Math.random().toString(36).substring(2, 15)}`;
       
+      // Get booking details
+      const { data: booking, error: bookingError } = await supabase
+        .from("bookings")
+        .select("*")
+        .eq("id", bookingId)
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      // Get student profile
+      const { data: studentProfile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", booking.student_id)
+        .single();
+
       const { error } = await supabase
         .from("bookings")
         .update({
@@ -85,12 +101,34 @@ export default function TutorDashboard() {
 
       if (error) throw error;
 
+      // Get tutor name
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: tutorData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user?.id)
+        .single();
+
+      // Send confirmation email to student
+      if (studentProfile) {
+        await supabase.functions.invoke("send-booking-notification", {
+          body: {
+            to: studentProfile.email,
+            studentName: studentProfile.full_name || "Student",
+            tutorName: tutorData?.full_name || "Your tutor",
+            scheduledAt: booking.scheduled_at,
+            duration: booking.duration_minutes,
+            meetingLink,
+            status: "confirmed",
+          },
+        });
+      }
+
       toast({
         title: "Booking Confirmed",
-        description: "Meeting link has been generated and saved.",
+        description: "Meeting link has been generated and student notified.",
       });
       
-      const { data: { user } } = await supabase.auth.getUser();
       if (user) fetchBookings(user.id);
     } catch (error: any) {
       toast({
@@ -103,6 +141,22 @@ export default function TutorDashboard() {
 
   const handleReject = async (bookingId: string) => {
     try {
+      // Get booking details
+      const { data: booking, error: bookingError } = await supabase
+        .from("bookings")
+        .select("*")
+        .eq("id", bookingId)
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      // Get student profile
+      const { data: studentProfile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", booking.student_id)
+        .single();
+
       const { error } = await supabase
         .from("bookings")
         .update({ status: "cancelled" })
@@ -110,12 +164,33 @@ export default function TutorDashboard() {
 
       if (error) throw error;
 
+      // Get tutor name
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: tutorData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user?.id)
+        .single();
+
+      // Send cancellation email to student
+      if (studentProfile) {
+        await supabase.functions.invoke("send-booking-notification", {
+          body: {
+            to: studentProfile.email,
+            studentName: studentProfile.full_name || "Student",
+            tutorName: tutorData?.full_name || "Your tutor",
+            scheduledAt: booking.scheduled_at,
+            duration: booking.duration_minutes,
+            status: "cancelled",
+          },
+        });
+      }
+
       toast({
         title: "Booking Cancelled",
-        description: "The booking has been cancelled.",
+        description: "The student has been notified.",
       });
       
-      const { data: { user } } = await supabase.auth.getUser();
       if (user) fetchBookings(user.id);
     } catch (error: any) {
       toast({
