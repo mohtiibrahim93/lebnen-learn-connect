@@ -71,6 +71,22 @@ export default function AdminPanel() {
 
   const handleApprove = async (applicationId: string, userId: string) => {
     try {
+      // Get application data first
+      const { data: application, error: fetchError } = await supabase
+        .from("tutor_applications")
+        .select("*")
+        .eq("id", applicationId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Get user profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", userId)
+        .single();
+
       // Update application status
       const { error: appError } = await supabase
         .from("tutor_applications")
@@ -82,19 +98,12 @@ export default function AdminPanel() {
 
       if (appError) throw appError;
 
-      // Get application data to create tutor profile
-      const { data: application } = await supabase
-        .from("tutor_applications")
-        .select("*")
-        .eq("id", applicationId)
-        .single();
-
       // Add tutor role
       const { error: roleError } = await supabase
         .from("user_roles")
         .insert({ user_id: userId, role: "tutor" });
 
-      if (roleError && roleError.code !== "23505") throw roleError; // Ignore duplicate key errors
+      if (roleError && roleError.code !== "23505") throw roleError;
 
       // Create tutor profile
       const { error: profileError } = await supabase
@@ -110,9 +119,20 @@ export default function AdminPanel() {
 
       if (profileError && profileError.code !== "23505") throw profileError;
 
+      // Send approval email
+      if (profile) {
+        await supabase.functions.invoke("send-application-notification", {
+          body: {
+            to: profile.email,
+            applicantName: profile.full_name || "Applicant",
+            status: "approved",
+          },
+        });
+      }
+
       toast({
         title: "Application Approved",
-        description: "Tutor profile has been created successfully.",
+        description: "Tutor profile created and applicant notified.",
       });
       fetchApplications();
     } catch (error: any) {
@@ -124,8 +144,15 @@ export default function AdminPanel() {
     }
   };
 
-  const handleReject = async (applicationId: string) => {
+  const handleReject = async (applicationId: string, userId: string) => {
     try {
+      // Get user profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", userId)
+        .single();
+
       const { error } = await supabase
         .from("tutor_applications")
         .update({
@@ -136,9 +163,20 @@ export default function AdminPanel() {
 
       if (error) throw error;
 
+      // Send rejection email
+      if (profile) {
+        await supabase.functions.invoke("send-application-notification", {
+          body: {
+            to: profile.email,
+            applicantName: profile.full_name || "Applicant",
+            status: "rejected",
+          },
+        });
+      }
+
       toast({
         title: "Application Rejected",
-        description: "The application has been rejected.",
+        description: "The applicant has been notified.",
       });
       fetchApplications();
     } catch (error: any) {
@@ -229,7 +267,7 @@ export default function AdminPanel() {
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleReject(app.id)}
+                              onClick={() => handleReject(app.id, app.user_id)}
                             >
                               <XCircle className="w-4 h-4 mr-1" />
                               Reject

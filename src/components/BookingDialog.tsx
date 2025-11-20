@@ -62,6 +62,33 @@ export const BookingDialog = ({ tutorId, open, onClose }: BookingDialogProps) =>
 
       if (error) throw error;
 
+      // Get tutor and student info for email
+      const { data: tutorData } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", tutorId)
+        .single();
+
+      const { data: studentData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      // Send notification email to tutor
+      if (tutorData) {
+        await supabase.functions.invoke("send-booking-notification", {
+          body: {
+            to: tutorData.email,
+            studentName: studentData?.full_name || "A student",
+            tutorName: tutorData.full_name || "Tutor",
+            scheduledAt: formData.scheduled_at,
+            duration: parseInt(formData.duration_minutes),
+            status: "pending",
+          },
+        });
+      }
+
       toast({
         title: "Booking request sent!",
         description: "The tutor will confirm your lesson shortly.",
