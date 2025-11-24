@@ -7,6 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,15 +30,32 @@ export const BookingDialog = ({ tutorId, open, onClose }: BookingDialogProps) =>
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [centers, setCenters] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     scheduled_at: "",
     duration_minutes: "60",
+    center_id: "",
     notes: "",
   });
 
   useEffect(() => {
     checkAuth();
-  }, []);
+    if (open) {
+      fetchCenters();
+    }
+  }, [open]);
+
+  const fetchCenters = async () => {
+    const { data, error } = await supabase
+      .from("teaching_centers")
+      .select("*")
+      .eq("is_active", true)
+      .order("name");
+
+    if (!error && data) {
+      setCenters(data);
+    }
+  };
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -57,6 +81,7 @@ export const BookingDialog = ({ tutorId, open, onClose }: BookingDialogProps) =>
         tutor_id: tutorId,
         scheduled_at: new Date(formData.scheduled_at).toISOString(),
         duration_minutes: parseInt(formData.duration_minutes),
+        center_id: formData.center_id || null,
         notes: formData.notes,
       });
 
@@ -139,6 +164,25 @@ export const BookingDialog = ({ tutorId, open, onClose }: BookingDialogProps) =>
               onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="center">Learning Center</Label>
+            <Select
+              value={formData.center_id}
+              onValueChange={(value) => setFormData({ ...formData, center_id: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a location" />
+              </SelectTrigger>
+              <SelectContent>
+                {centers.map((center) => (
+                  <SelectItem key={center.id} value={center.id}>
+                    {center.name} - {center.city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
