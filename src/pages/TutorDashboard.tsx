@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, XCircle, GraduationCap, ArrowLeft, Link as LinkIcon } from "lucide-react";
+import { CheckCircle, XCircle, GraduationCap, ArrowLeft, Link as LinkIcon, DollarSign } from "lucide-react";
 
 export default function TutorDashboard() {
   const navigate = useNavigate();
@@ -73,8 +73,6 @@ export default function TutorDashboard() {
 
   const handleAccept = async (bookingId: string) => {
     try {
-      const meetingLink = `https://meet.google.com/${Math.random().toString(36).substring(2, 15)}`;
-      
       // Get booking details
       const { data: booking, error: bookingError } = await supabase
         .from("bookings")
@@ -83,6 +81,18 @@ export default function TutorDashboard() {
         .single();
 
       if (bookingError) throw bookingError;
+
+      // Check if payment is completed
+      if (booking.payment_status !== "paid") {
+        toast({
+          title: "Cannot Confirm",
+          description: "This booking hasn't been paid yet.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const meetingLink = `https://meet.google.com/${Math.random().toString(36).substring(2, 15)}`;
 
       // Get student profile
       const { data: studentProfile } = await supabase
@@ -244,6 +254,8 @@ export default function TutorDashboard() {
                     <TableHead>Student</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Duration</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Payment</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Meeting Link</TableHead>
                     <TableHead>Actions</TableHead>
@@ -262,6 +274,27 @@ export default function TutorDashboard() {
                         {new Date(booking.scheduled_at).toLocaleString()}
                       </TableCell>
                       <TableCell>{booking.duration_minutes} min</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium">
+                            {booking.amount_paid?.toFixed(2) || "0.00"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            booking.payment_status === "paid"
+                              ? "default"
+                              : booking.payment_status === "failed"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                        >
+                          {booking.payment_status}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={
