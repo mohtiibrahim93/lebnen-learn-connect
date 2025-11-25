@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BookOpen, ArrowLeft, ExternalLink } from "lucide-react";
+import { BookOpen, ArrowLeft, ExternalLink, DollarSign } from "lucide-react";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -18,6 +19,21 @@ export default function StudentDashboard() {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    const bookingId = searchParams.get("booking");
+
+    if (payment === "success" && bookingId) {
+      verifyPayment(bookingId);
+    } else if (payment === "cancelled") {
+      toast({
+        title: "Payment Cancelled",
+        description: "Your booking payment was cancelled.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -54,6 +70,30 @@ export default function StudentDashboard() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const verifyPayment = async (bookingId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-lesson-payment", {
+        body: { bookingId },
+      });
+
+      if (error) throw error;
+
+      if (data?.status === "paid") {
+        toast({
+          title: "Payment Successful!",
+          description: "Your lesson has been confirmed.",
+        });
+        if (user) fetchBookings(user.id);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Payment Verification Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -101,6 +141,8 @@ export default function StudentDashboard() {
                     <TableHead>Tutor</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Duration</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Payment</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Meeting Link</TableHead>
                   </TableRow>
@@ -122,6 +164,27 @@ export default function StudentDashboard() {
                         {new Date(booking.scheduled_at).toLocaleString()}
                       </TableCell>
                       <TableCell>{booking.duration_minutes} min</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium">
+                            {booking.amount_paid?.toFixed(2) || "0.00"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            booking.payment_status === "paid"
+                              ? "default"
+                              : booking.payment_status === "failed"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                        >
+                          {booking.payment_status}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={

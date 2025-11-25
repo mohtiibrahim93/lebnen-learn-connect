@@ -16,12 +16,15 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          amount_paid: number | null
           center_id: string | null
           created_at: string
           duration_minutes: number
           id: string
           meeting_link: string | null
           notes: string | null
+          payment_intent_id: string | null
+          payment_status: string | null
           scheduled_at: string
           status: Database["public"]["Enums"]["booking_status"]
           student_id: string
@@ -29,12 +32,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amount_paid?: number | null
           center_id?: string | null
           created_at?: string
           duration_minutes?: number
           id?: string
           meeting_link?: string | null
           notes?: string | null
+          payment_intent_id?: string | null
+          payment_status?: string | null
           scheduled_at: string
           status?: Database["public"]["Enums"]["booking_status"]
           student_id: string
@@ -42,12 +48,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amount_paid?: number | null
           center_id?: string | null
           created_at?: string
           duration_minutes?: number
           id?: string
           meeting_link?: string | null
           notes?: string | null
+          payment_intent_id?: string | null
+          payment_status?: string | null
           scheduled_at?: string
           status?: Database["public"]["Enums"]["booking_status"]
           student_id?: string

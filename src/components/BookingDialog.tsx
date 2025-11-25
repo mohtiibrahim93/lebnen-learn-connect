@@ -73,59 +73,59 @@ export const BookingDialog = ({ tutorId, open, onClose }: BookingDialogProps) =>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.center_id) {
+      toast({
+        title: "Location Required",
+        description: "Please select a learning center.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("bookings").insert({
-        student_id: user.id,
-        tutor_id: tutorId,
-        scheduled_at: new Date(formData.scheduled_at).toISOString(),
-        duration_minutes: parseInt(formData.duration_minutes),
-        center_id: formData.center_id || null,
-        notes: formData.notes,
-      });
-
-      if (error) throw error;
-
-      // Get tutor and student info for email
-      const { data: tutorData } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", tutorId)
+      // Create booking first
+      const { data: booking, error: bookingError } = await supabase
+        .from("bookings")
+        .insert({
+          student_id: user.id,
+          tutor_id: tutorId,
+          scheduled_at: new Date(formData.scheduled_at).toISOString(),
+          duration_minutes: parseInt(formData.duration_minutes),
+          center_id: formData.center_id,
+          notes: formData.notes,
+          status: "pending",
+          payment_status: "pending",
+        })
+        .select()
         .single();
 
-      const { data: studentData } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .single();
+      if (bookingError) throw bookingError;
 
-      // Send notification email to tutor
-      if (tutorData) {
-        await supabase.functions.invoke("send-booking-notification", {
-          body: {
-            to: tutorData.email,
-            studentName: studentData?.full_name || "A student",
-            tutorName: tutorData.full_name || "Tutor",
-            scheduledAt: formData.scheduled_at,
-            duration: parseInt(formData.duration_minutes),
-            status: "pending",
-          },
-        });
+      // Create payment session
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
+        "create-lesson-payment",
+        {
+          body: { bookingId: booking.id },
+        }
+      );
+
+      if (paymentError) throw paymentError;
+
+      // Redirect to Stripe checkout
+      if (paymentData?.url) {
+        window.location.href = paymentData.url;
+      } else {
+        throw new Error("Failed to create payment session");
       }
-
-      toast({
-        title: "Booking request sent!",
-        description: "The tutor will confirm your lesson shortly.",
-      });
-      onClose();
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -138,6 +138,9 @@ export const BookingDialog = ({ tutorId, open, onClose }: BookingDialogProps) =>
             <Calendar className="w-5 h-5" />
             Book a Lesson
           </DialogTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            Payment is required upfront. You'll be redirected to secure checkout after submitting.
+          </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -171,6 +174,7 @@ export const BookingDialog = ({ tutorId, open, onClose }: BookingDialogProps) =>
             <Select
               value={formData.center_id}
               onValueChange={(value) => setFormData({ ...formData, center_id: value })}
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a location" />
@@ -201,7 +205,7 @@ export const BookingDialog = ({ tutorId, open, onClose }: BookingDialogProps) =>
               Cancel
             </Button>
             <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? "Booking..." : "Send Request"}
+              {loading ? "Processing..." : "Continue to Payment"}
             </Button>
           </div>
         </form>
