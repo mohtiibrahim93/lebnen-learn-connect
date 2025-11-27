@@ -115,6 +115,45 @@ export type Database = {
         }
         Relationships: []
       }
+      enrollments: {
+        Row: {
+          course_level: string
+          created_at: string
+          email: string
+          enrollment_type: string
+          id: string
+          message: string | null
+          name: string
+          preferred_tutor: string | null
+          study_center: string
+          updated_at: string
+        }
+        Insert: {
+          course_level: string
+          created_at?: string
+          email: string
+          enrollment_type: string
+          id?: string
+          message?: string | null
+          name: string
+          preferred_tutor?: string | null
+          study_center: string
+          updated_at?: string
+        }
+        Update: {
+          course_level?: string
+          created_at?: string
+          email?: string
+          enrollment_type?: string
+          id?: string
+          message?: string | null
+          name?: string
+          preferred_tutor?: string | null
+          study_center?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
