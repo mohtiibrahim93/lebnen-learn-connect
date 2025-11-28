@@ -30,6 +30,7 @@ export default function LandingPage() {
             <a href="#curriculum" className="text-muted-foreground hover:text-primary transition duration-200">Curriculum</a>
             <a href="#perspective" className="text-muted-foreground hover:text-primary transition duration-200">Perspective</a>
             <a href="#insight" className="text-muted-foreground hover:text-primary transition duration-200">Tutor Virtual</a>
+            <a href="/tutor-dashboard" className="text-muted-foreground hover:text-primary transition duration-200">Dashboard Tutor</a>
             <a href="#enrollment" className="text-muted-foreground hover:text-primary transition duration-200 font-semibold">Înscrie-te</a>
           </nav>
           <Button onClick={scrollToEnrollment} className="hidden md:block">
