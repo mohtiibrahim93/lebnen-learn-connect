@@ -217,6 +217,42 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          avatar_url: string | null
+          course_level: string | null
+          created_at: string | null
+          id: string
+          is_approved: boolean | null
+          rating: number
+          review_text: string
+          student_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          course_level?: string | null
+          created_at?: string | null
+          id?: string
+          is_approved?: boolean | null
+          rating: number
+          review_text: string
+          student_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          course_level?: string | null
+          created_at?: string | null
+          id?: string
+          is_approved?: boolean | null
+          rating?: number
+          review_text?: string
+          student_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       tutor_applications: {
         Row: {
           created_at: string

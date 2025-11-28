@@ -6,6 +6,7 @@ import { LebaneseFlag } from "@/components/LebaneseFlag";
 import { CurriculumSection } from "@/components/landing/CurriculumSection";
 import { AITutorSection } from "@/components/landing/AITutorSection";
 import { EnrollmentSection } from "@/components/landing/EnrollmentSection";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import heroImage from "@/assets/hero-lebanese.jpg";
 
 export default function LandingPage() {
@@ -149,6 +150,9 @@ export default function LandingPage() {
           </Button>
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      <TestimonialsSection />
 
       {/* AI Tutor Section */}
       <AITutorSection />
