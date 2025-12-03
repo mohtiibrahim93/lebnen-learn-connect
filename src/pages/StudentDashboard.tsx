@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { StudentOverview } from "@/components/student/StudentOverview";
+import { StudentCalendar } from "@/components/student/StudentCalendar";
 import { StudentBookings } from "@/components/student/StudentBookings";
 import { StudentCourses } from "@/components/student/StudentCourses";
 import { StudentProfile } from "@/components/student/StudentProfile";
@@ -95,6 +96,7 @@ export default function StudentDashboard() {
             <div className="container mx-auto px-4 py-8">
               <Routes>
                 <Route index element={<StudentOverview studentId={user.id} />} />
+                <Route path="calendar" element={<StudentCalendar studentId={user.id} />} />
                 <Route path="bookings" element={<StudentBookings studentId={user.id} />} />
                 <Route path="courses" element={<StudentCourses />} />
                 <Route path="search" element={<StudentTutorSearch />} />
