@@ -7,6 +7,7 @@ import LandingPage from "./pages/LandingPage";
 import Auth from "./pages/Auth";
 import TutorDashboard from "./pages/TutorDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
+import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/tutor-dashboard/*" element={<TutorDashboard />} />
           <Route path="/student-dashboard/*" element={<StudentDashboard />} />
+          <Route path="/admin/*" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
