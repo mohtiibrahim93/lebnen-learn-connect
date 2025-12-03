@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Routes, Route } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, XCircle, Shield, ArrowLeft } from "lucide-react";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminOverview } from "@/components/admin/AdminOverview";
+import { AdminApplications } from "@/components/admin/AdminApplications";
+import { AdminUsers } from "@/components/admin/AdminUsers";
+import { AdminCenters } from "@/components/admin/AdminCenters";
+import { AdminTestimonials } from "@/components/admin/AdminTestimonials";
+import { Shield } from "lucide-react";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [applications, setApplications] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -43,246 +45,42 @@ export default function AdminPanel() {
     }
 
     setIsAdmin(true);
-    fetchApplications();
+    setLoading(false);
   };
 
-  const fetchApplications = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("tutor_applications")
-        .select(`
-          *,
-          profiles:user_id (full_name, email)
-        `)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setApplications(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApprove = async (applicationId: string, userId: string) => {
-    try {
-      // Get application data first
-      const { data: application, error: fetchError } = await supabase
-        .from("tutor_applications")
-        .select("*")
-        .eq("id", applicationId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Get user profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", userId)
-        .single();
-
-      // Update application status
-      const { error: appError } = await supabase
-        .from("tutor_applications")
-        .update({
-          status: "approved",
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", applicationId);
-
-      if (appError) throw appError;
-
-      // Add tutor role
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({ user_id: userId, role: "tutor" });
-
-      if (roleError && roleError.code !== "23505") throw roleError;
-
-      // Create tutor profile
-      const { error: profileError } = await supabase
-        .from("tutor_profiles")
-        .insert({
-          user_id: userId,
-          expertise: application?.expertise,
-          experience_years: application?.experience_years,
-          hourly_rate: application?.hourly_rate,
-          specialties: application?.specialties,
-          is_verified: true,
-        });
-
-      if (profileError && profileError.code !== "23505") throw profileError;
-
-      // Send approval email
-      if (profile) {
-        await supabase.functions.invoke("send-application-notification", {
-          body: {
-            to: profile.email,
-            applicantName: profile.full_name || "Applicant",
-            status: "approved",
-          },
-        });
-      }
-
-      toast({
-        title: "Application Approved",
-        description: "Tutor profile created and applicant notified.",
-      });
-      fetchApplications();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleReject = async (applicationId: string, userId: string) => {
-    try {
-      // Get user profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", userId)
-        .single();
-
-      const { error } = await supabase
-        .from("tutor_applications")
-        .update({
-          status: "rejected",
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", applicationId);
-
-      if (error) throw error;
-
-      // Send rejection email
-      if (profile) {
-        await supabase.functions.invoke("send-application-notification", {
-          body: {
-            to: profile.email,
-            applicantName: profile.full_name || "Applicant",
-            status: "rejected",
-          },
-        });
-      }
-
-      toast({
-        title: "Application Rejected",
-        description: "The applicant has been notified.",
-      });
-      fetchApplications();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="w-6 h-6 text-primary" />
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AdminSidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <header className="h-14 flex items-center border-b bg-card px-6">
+            <SidebarTrigger className="mr-4" />
+            <Shield className="w-5 h-5 text-primary mr-2" />
             <h1 className="text-xl font-bold">Admin Panel</h1>
-          </div>
-          <Button variant="ghost" onClick={() => navigate("/")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
-        </div>
-      </nav>
+          </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Tutor Applications</CardTitle>
-            <CardDescription>Review and manage tutor applications</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-muted-foreground">Loading applications...</p>
-            ) : applications.length === 0 ? (
-              <p className="text-muted-foreground">No applications found.</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Applicant</TableHead>
-                    <TableHead>Expertise</TableHead>
-                    <TableHead>Experience</TableHead>
-                    <TableHead>Rate</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {applications.map((app) => (
-                    <TableRow key={app.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{app.profiles?.full_name || "Unknown"}</p>
-                          <p className="text-sm text-muted-foreground">{app.profiles?.email}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{app.expertise}</TableCell>
-                      <TableCell>{app.experience_years} years</TableCell>
-                      <TableCell>${app.hourly_rate}/hr</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            app.status === "approved"
-                              ? "default"
-                              : app.status === "rejected"
-                              ? "destructive"
-                              : "secondary"
-                          }
-                        >
-                          {app.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {app.status === "pending" && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => handleApprove(app.id, app.user_id)}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleReject(app.id, app.user_id)}
-                            >
-                              <XCircle className="w-4 h-4 mr-1" />
-                              Reject
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+          <main className="flex-1 p-6 overflow-auto">
+            <Routes>
+              <Route index element={<AdminOverview />} />
+              <Route path="applications" element={<AdminApplications />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="centers" element={<AdminCenters />} />
+              <Route path="testimonials" element={<AdminTestimonials />} />
+            </Routes>
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
