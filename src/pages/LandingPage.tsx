@@ -1,16 +1,60 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Globe, Calendar, TrendingUp, BookOpen } from "lucide-react";
+import { MessageCircle, Globe, Calendar, TrendingUp, BookOpen, LogOut, User } from "lucide-react";
 import { LebaneseFlag } from "@/components/LebaneseFlag";
 import { CurriculumSection } from "@/components/landing/CurriculumSection";
 import { AITutorSection } from "@/components/landing/AITutorSection";
 import { EnrollmentSection } from "@/components/landing/EnrollmentSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-lebanese.jpg";
 
 export default function LandingPage() {
+  const navigate = useNavigate();
   const enrollmentRef = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useState<any>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRoles(session.user.id);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRoles(session.user.id);
+      } else {
+        setUserRoles([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchUserRoles = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    
+    setUserRoles(data?.map(r => r.role) || []);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const getDashboardPath = () => {
+    if (userRoles.includes("admin")) return "/admin";
+    if (userRoles.includes("tutor")) return "/tutor-dashboard";
+    return "/student-dashboard";
+  };
 
   const scrollToEnrollment = () => {
     enrollmentRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -25,17 +69,33 @@ export default function LandingPage() {
             <div className="text-3xl font-extrabold text-primary">لبنان</div>
             <span className="text-xl font-bold text-foreground">Centrul de Arabă Libaneză</span>
           </a>
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             <a href="#whyus" className="text-muted-foreground hover:text-primary transition duration-200">De Ce Noi</a>
             <a href="#curriculum" className="text-muted-foreground hover:text-primary transition duration-200">Curriculum</a>
             <a href="#perspective" className="text-muted-foreground hover:text-primary transition duration-200">Perspective</a>
             <a href="#insight" className="text-muted-foreground hover:text-primary transition duration-200">Tutor Virtual</a>
-            <a href="/tutor-dashboard" className="text-muted-foreground hover:text-primary transition duration-200">Dashboard Tutor</a>
-            <a href="#enrollment" className="text-muted-foreground hover:text-primary transition duration-200 font-semibold">Înscrie-te</a>
+            {user ? (
+              <>
+                <Button variant="ghost" onClick={() => navigate(getDashboardPath())}>
+                  <User className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+                <Button variant="outline" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Deconectare
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => navigate("/auth")}>
+                  Autentificare
+                </Button>
+                <Button onClick={scrollToEnrollment}>
+                  Înscrie-te
+                </Button>
+              </>
+            )}
           </nav>
-          <Button onClick={scrollToEnrollment} className="hidden md:block">
-            Înscrie-te
-          </Button>
         </div>
       </header>
 
