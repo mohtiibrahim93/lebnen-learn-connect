@@ -11,6 +11,7 @@ import { StudentBookings } from "@/components/student/StudentBookings";
 import { StudentCourses } from "@/components/student/StudentCourses";
 import { StudentProfile } from "@/components/student/StudentProfile";
 import { StudentTutorSearch } from "@/components/student/StudentTutorSearch";
+import { NotificationBell } from "@/components/shared/NotificationBell";
 import { BookOpen, ArrowLeft } from "lucide-react";
 
 export default function StudentDashboard() {
@@ -85,10 +86,13 @@ export default function StudentDashboard() {
                 <BookOpen className="w-6 h-6 text-primary" />
                 <h1 className="text-xl font-bold">Student Dashboard</h1>
               </div>
-              <Button variant="ghost" onClick={() => navigate("/")}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
-              </Button>
+              <div className="flex items-center gap-2">
+                <NotificationBell userId={user.id} />
+                <Button variant="ghost" onClick={() => navigate("/")}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Button>
+              </div>
             </div>
           </header>
 
