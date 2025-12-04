@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorSidebar } from "@/components/tutor/TutorSidebar";
 import { TutorOverview } from "@/components/tutor/TutorOverview";
@@ -10,6 +11,8 @@ import { TutorBookings } from "@/components/tutor/TutorBookings";
 import { TutorStudents } from "@/components/tutor/TutorStudents";
 import { TutorCourses } from "@/components/tutor/TutorCourses";
 import { TutorProfile } from "@/components/tutor/TutorProfile";
+import { NotificationBell } from "@/components/shared/NotificationBell";
+import { ArrowLeft } from "lucide-react";
 
 export default function TutorDashboard() {
   const navigate = useNavigate();
@@ -62,9 +65,18 @@ export default function TutorDashboard() {
         <TutorSidebar />
         
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b bg-card px-6">
-            <SidebarTrigger className="mr-4" />
-            <h1 className="text-xl font-bold">Tutor Dashboard</h1>
+          <header className="h-14 flex items-center justify-between border-b bg-card px-6">
+            <div className="flex items-center">
+              <SidebarTrigger className="mr-4" />
+              <h1 className="text-xl font-bold">Tutor Dashboard</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationBell userId={tutorId} />
+              <Button variant="ghost" onClick={() => navigate("/")}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
+            </div>
           </header>
 
           <main className="flex-1 p-6 overflow-auto">
