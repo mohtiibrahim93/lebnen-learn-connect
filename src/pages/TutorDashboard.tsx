@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { TutorSidebar } from "@/components/tutor/TutorSidebar";
 import { TutorOverview } from "@/components/tutor/TutorOverview";
 import { TutorCalendar } from "@/components/tutor/TutorCalendar";
+import { TutorAvailability } from "@/components/tutor/TutorAvailability";
 import { TutorBookings } from "@/components/tutor/TutorBookings";
 import { TutorStudents } from "@/components/tutor/TutorStudents";
 import { TutorCourses } from "@/components/tutor/TutorCourses";
@@ -83,6 +84,7 @@ export default function TutorDashboard() {
             <Routes>
               <Route index element={<TutorOverview tutorId={tutorId} />} />
               <Route path="calendar" element={<TutorCalendar tutorId={tutorId} />} />
+              <Route path="availability" element={<TutorAvailability tutorId={tutorId} />} />
               <Route path="bookings" element={<TutorBookings tutorId={tutorId} />} />
               <Route path="students" element={<TutorStudents tutorId={tutorId} />} />
               <Route path="courses" element={<TutorCourses tutorId={tutorId} />} />
