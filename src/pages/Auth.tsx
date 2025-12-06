@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { GraduationCap, BookOpen } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"student" | "tutor">("student");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -46,6 +49,7 @@ export default function Auth() {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: fullName,
+            role: selectedRole,
           }
         }
       });
@@ -54,7 +58,7 @@ export default function Auth() {
 
       toast({
         title: "Account created!",
-        description: "You can now log in with your credentials.",
+        description: `You're now registered as a ${selectedRole}. You can log in with your credentials.`,
       });
     } catch (error: any) {
       toast({
@@ -167,8 +171,53 @@ export default function Auth() {
                   minLength={6}
                 />
               </div>
+              
+              <div className="space-y-3">
+                <Label>I want to join as</Label>
+                <RadioGroup
+                  value={selectedRole}
+                  onValueChange={(value) => setSelectedRole(value as "student" | "tutor")}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <div>
+                    <RadioGroupItem
+                      value="student"
+                      id="student"
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor="student"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <GraduationCap className="mb-2 h-6 w-6" />
+                      <span className="font-medium">Student</span>
+                      <span className="text-xs text-muted-foreground text-center mt-1">
+                        Learn Lebanese Arabic
+                      </span>
+                    </Label>
+                  </div>
+                  <div>
+                    <RadioGroupItem
+                      value="tutor"
+                      id="tutor"
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor="tutor"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <BookOpen className="mb-2 h-6 w-6" />
+                      <span className="font-medium">Tutor</span>
+                      <span className="text-xs text-muted-foreground text-center mt-1">
+                        Teach Lebanese Arabic
+                      </span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Creating account..." : "Sign Up"}
+                {loading ? "Creating account..." : `Sign Up as ${selectedRole === 'student' ? 'Student' : 'Tutor'}`}
               </Button>
             </form>
           </TabsContent>
