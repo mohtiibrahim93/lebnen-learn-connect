@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AddRoleCard } from "@/components/shared/AddRoleCard";
 
 export function StudentProfile({ userId }: { userId: string }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [profile, setProfile] = useState({
     full_name: "",
     email: "",
@@ -20,7 +22,16 @@ export function StudentProfile({ userId }: { userId: string }) {
 
   useEffect(() => {
     fetchProfile();
+    fetchUserRoles();
   }, [userId]);
+
+  const fetchUserRoles = async () => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    setUserRoles(data?.map(r => r.role) || []);
+  };
 
   const fetchProfile = async () => {
     try {
@@ -139,6 +150,12 @@ export function StudentProfile({ userId }: { userId: string }) {
           </div>
         </CardContent>
       </Card>
+
+      <AddRoleCard
+        userId={userId}
+        currentRoles={userRoles}
+        onRoleAdded={fetchUserRoles}
+      />
     </div>
   );
 }

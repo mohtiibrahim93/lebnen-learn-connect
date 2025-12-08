@@ -23,19 +23,69 @@ export default function Auth() {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        handlePostLoginRedirect(session.user.id);
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/");
+        // Defer to avoid deadlock
+        setTimeout(() => {
+          handlePostLoginRedirect(session.user.id);
+        }, 0);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handlePostLoginRedirect = async (userId: string) => {
+    try {
+      // Get user roles
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+
+      const userRoles = roles?.map(r => r.role) || [];
+
+      // Check if tutor needs onboarding
+      if (userRoles.includes("tutor")) {
+        const { data: tutorProfile } = await supabase
+          .from("tutor_profiles")
+          .select("hourly_rate, experience_years")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        // If tutor hasn't completed onboarding (default values)
+        const needsOnboarding = !tutorProfile || 
+          (tutorProfile.hourly_rate === 25 && tutorProfile.experience_years === 0);
+
+        if (needsOnboarding) {
+          navigate("/tutor-onboarding");
+          return;
+        }
+        navigate("/tutor-dashboard");
+        return;
+      }
+
+      if (userRoles.includes("admin")) {
+        navigate("/admin");
+        return;
+      }
+
+      if (userRoles.includes("student")) {
+        navigate("/student-dashboard");
+        return;
+      }
+
+      navigate("/");
+    } catch (error) {
+      console.error("Error during redirect:", error);
+      navigate("/");
+    }
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +96,7 @@ export default function Auth() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/auth`,
           data: {
             full_name: fullName,
             role: selectedRole,
@@ -133,6 +183,16 @@ export default function Auth() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-sm text-muted-foreground"
+                  onClick={() => navigate("/reset-password")}
+                >
+                  Forgot your password?
+                </Button>
+              </div>
             </form>
           </TabsContent>
 
