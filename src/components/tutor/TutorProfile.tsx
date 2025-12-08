@@ -12,10 +12,12 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, DollarSign, Bell, Shield, X, Plus } from "lucide-react";
+import { AddRoleCard } from "@/components/shared/AddRoleCard";
 
 export function TutorProfile({ tutorId }: { tutorId: string }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [profile, setProfile] = useState({
     full_name: "",
     email: "",
@@ -38,7 +40,16 @@ export function TutorProfile({ tutorId }: { tutorId: string }) {
   useEffect(() => {
     fetchProfile();
     fetchTutorProfile();
+    fetchUserRoles();
   }, [tutorId]);
+
+  const fetchUserRoles = async () => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", tutorId);
+    setUserRoles(data?.map(r => r.role) || []);
+  };
 
   const fetchProfile = async () => {
     try {
@@ -464,6 +475,13 @@ export function TutorProfile({ tutorId }: { tutorId: string }) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add Role Card */}
+      <AddRoleCard
+        userId={tutorId}
+        currentRoles={userRoles}
+        onRoleAdded={fetchUserRoles}
+      />
     </div>
   );
 }
