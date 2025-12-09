@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Check, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,13 +10,18 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useNotifications, Notification } from "@/hooks/use-notifications";
 import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
-interface NotificationBellProps {
-  userId: string;
-}
-
-export function NotificationBell({ userId }: NotificationBellProps) {
+export function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id || null);
+    });
+  }, []);
+
   const {
     notifications,
     unreadCount,
@@ -24,7 +29,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     markAsRead,
     markAllAsRead,
     deleteNotification,
-  } = useNotifications(userId);
+  } = useNotifications(userId || "");
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -42,6 +47,8 @@ export function NotificationBell({ userId }: NotificationBellProps) {
         return "🔔";
     }
   };
+
+  if (!userId) return null;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -12,7 +12,8 @@ import { StudentCourses } from "@/components/student/StudentCourses";
 import { StudentProfile } from "@/components/student/StudentProfile";
 import { StudentTutorSearch } from "@/components/student/StudentTutorSearch";
 import { NotificationBell } from "@/components/shared/NotificationBell";
-import { BookOpen, ArrowLeft } from "lucide-react";
+import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
+import { BookOpen, ArrowLeft, LogOut } from "lucide-react";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -21,7 +22,9 @@ export default function StudentDashboard() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    checkAuth();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUser(user);
+    });
   }, []);
 
   useEffect(() => {
@@ -38,16 +41,6 @@ export default function StudentDashboard() {
       });
     }
   }, [searchParams]);
-
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    setUser(user);
-  };
 
   const verifyPayment = async (bookingId: string) => {
     try {
@@ -72,6 +65,12 @@ export default function StudentDashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+    toast({ title: "Logged out successfully" });
+  };
+
   if (!user) return null;
 
   return (
@@ -87,10 +86,13 @@ export default function StudentDashboard() {
                 <h1 className="text-xl font-bold">Student Dashboard</h1>
               </div>
               <div className="flex items-center gap-2">
-                <NotificationBell userId={user.id} />
-                <Button variant="ghost" onClick={() => navigate("/")}>
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Home
+                <RoleSwitcher />
+                <NotificationBell />
+                <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4" />
                 </Button>
               </div>
             </div>

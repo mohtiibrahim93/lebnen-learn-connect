@@ -13,46 +13,27 @@ import { TutorStudents } from "@/components/tutor/TutorStudents";
 import { TutorCourses } from "@/components/tutor/TutorCourses";
 import { TutorProfile } from "@/components/tutor/TutorProfile";
 import { NotificationBell } from "@/components/shared/NotificationBell";
-import { ArrowLeft } from "lucide-react";
+import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
+import { ArrowLeft, LogOut } from "lucide-react";
 
 export default function TutorDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
   const [tutorId, setTutorId] = useState<string | null>(null);
 
   useEffect(() => {
-    checkTutorAccess();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setTutorId(user.id);
+    });
   }, []);
 
-  const checkTutorAccess = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-
-    const hasTutorRole = roles?.some(r => r.role === "tutor");
-    if (!hasTutorRole) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access this page.",
-        variant: "destructive",
-      });
-      navigate("/");
-      return;
-    }
-
-    setTutorId(user.id);
-    setLoading(false);
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+    toast({ title: "Logged out successfully" });
   };
 
-  if (loading || !tutorId) {
+  if (!tutorId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
@@ -72,10 +53,13 @@ export default function TutorDashboard() {
               <h1 className="text-xl font-bold">Tutor Dashboard</h1>
             </div>
             <div className="flex items-center gap-2">
-              <NotificationBell userId={tutorId} />
-              <Button variant="ghost" onClick={() => navigate("/")}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
+              <RoleSwitcher />
+              <NotificationBell />
+              <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           </header>
