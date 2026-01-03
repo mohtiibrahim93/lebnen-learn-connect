@@ -12,6 +12,7 @@ import { TutorBookings } from "@/components/tutor/TutorBookings";
 import { TutorStudents } from "@/components/tutor/TutorStudents";
 import { TutorCourses } from "@/components/tutor/TutorCourses";
 import { TutorProfile } from "@/components/tutor/TutorProfile";
+import { TutorMessages } from "@/components/tutor/TutorMessages";
 import { NotificationBell } from "@/components/shared/NotificationBell";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 import { ArrowLeft, LogOut } from "lucide-react";
@@ -70,6 +71,7 @@ export default function TutorDashboard() {
               <Route path="calendar" element={<TutorCalendar tutorId={tutorId} />} />
               <Route path="availability" element={<TutorAvailability tutorId={tutorId} />} />
               <Route path="bookings" element={<TutorBookings tutorId={tutorId} />} />
+              <Route path="messages" element={<TutorMessages tutorId={tutorId} />} />
               <Route path="students" element={<TutorStudents tutorId={tutorId} />} />
               <Route path="courses" element={<TutorCourses tutorId={tutorId} />} />
               <Route path="profile" element={<TutorProfile tutorId={tutorId} />} />

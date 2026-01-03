@@ -1,4 +1,4 @@
-import { Home, Calendar, CalendarDays, BookOpen, User, Search } from "lucide-react";
+import { Home, Calendar, CalendarDays, BookOpen, User, Search, MessageSquare } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -16,6 +16,7 @@ const navItems = [
   { title: "Overview", url: "/student-dashboard", icon: Home, end: true },
   { title: "Calendar", url: "/student-dashboard/calendar", icon: CalendarDays },
   { title: "My Bookings", url: "/student-dashboard/bookings", icon: Calendar },
+  { title: "Messages", url: "/student-dashboard/messages", icon: MessageSquare },
   { title: "My Courses", url: "/student-dashboard/courses", icon: BookOpen },
   { title: "Find Tutors", url: "/student-dashboard/search", icon: Search },
   { title: "Profile", url: "/student-dashboard/profile", icon: User },
