@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, CalendarDays, Users, BookOpen, Settings, LogOut, Clock } from "lucide-react";
+import { LayoutDashboard, Calendar, CalendarDays, Users, BookOpen, Settings, LogOut, Clock, MessageSquare } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,7 @@ const navItems = [
   { title: "Calendar", url: "/tutor-dashboard/calendar", icon: CalendarDays },
   { title: "Availability", url: "/tutor-dashboard/availability", icon: Clock },
   { title: "Bookings", url: "/tutor-dashboard/bookings", icon: Calendar },
+  { title: "Messages", url: "/tutor-dashboard/messages", icon: MessageSquare },
   { title: "Students", url: "/tutor-dashboard/students", icon: Users },
   { title: "Courses", url: "/tutor-dashboard/courses", icon: BookOpen },
   { title: "Profile", url: "/tutor-dashboard/profile", icon: Settings },

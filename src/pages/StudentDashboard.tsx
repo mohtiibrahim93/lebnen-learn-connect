@@ -11,6 +11,7 @@ import { StudentBookings } from "@/components/student/StudentBookings";
 import { StudentCourses } from "@/components/student/StudentCourses";
 import { StudentProfile } from "@/components/student/StudentProfile";
 import { StudentTutorSearch } from "@/components/student/StudentTutorSearch";
+import { StudentMessages } from "@/components/student/StudentMessages";
 import { NotificationBell } from "@/components/shared/NotificationBell";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 import { BookOpen, ArrowLeft, LogOut } from "lucide-react";
@@ -104,6 +105,7 @@ export default function StudentDashboard() {
                 <Route index element={<StudentOverview studentId={user.id} />} />
                 <Route path="calendar" element={<StudentCalendar studentId={user.id} />} />
                 <Route path="bookings" element={<StudentBookings studentId={user.id} />} />
+                <Route path="messages" element={<StudentMessages studentId={user.id} />} />
                 <Route path="courses" element={<StudentCourses />} />
                 <Route path="search" element={<StudentTutorSearch />} />
                 <Route path="profile" element={<StudentProfile userId={user.id} />} />
